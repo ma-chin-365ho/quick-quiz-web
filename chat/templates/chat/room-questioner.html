@@ -4,71 +4,29 @@
 <head>
     <meta charset="utf-8"/>
     <title>Quiz Room Questioner</title>
+    {% load static %}
+    <script src="{% static 'chat/js/chat.js' %}"></script>
 </head>
 <body>
-    Room ID: <input id="room-id-input" name="room-id" type="text" size="100" value="{{ room_id }}" readonly="readonly"><br>
-    Room Password: <input id="room-pw-input" name="room-pw" type="text" size="100" value="{{ room_pw }}" readonly="readonly"><br>
-    Room Name : <input id="room-name-input" name="room-name" type="text" size="100" value="{{ room_name }}" readonly="readonly"><br>
-    Question No: <input id="question-no-input" name="question-no" type="text" size="100" value="" readonly="readonly"><br>
-    <textarea id="answerer-list" cols="100" rows="20" readonly></textarea><br>
-    <input id="question-submit" type="button" value="出題" />
-    <input id="correct-submit" type="button" value="正解" disabled />
-    <input id="incorrect-submit" type="button" value="不正解" disabled />
-    {{ room_id|json_script:"room-name" }}
+    Room ID: <input id="room-id-input" name="room-id" type="text" size="100" value="{{ room_id }}" readonly="readonly"><br />
+    Room Password: <input id="room-pw-input" name="room-pw" type="text" size="100" value="{{ room_pw }}" readonly="readonly"><br />
+    Room Name : <input id="room-name-input" name="room-name" type="text" size="100" value="{{ room_name }}" readonly="readonly"><br />
+    Question No: <input id="question-no-input" name="question-no" type="text" size="100" value="" readonly="readonly"><br />
+    <textarea id="answerer-list" cols="100" rows="20" readonly>
+    </textarea><br />
+    <input id="question-submit" type="button" value="出題" onclick="questionSubmit(chatSocket);afterQuestionSubmit()" />
+    <input id="correct-submit" type="button" value="正解" onclick="correctSubmit(chatSocket);afterCorrectSubmit()" disabled />
+    <input id="incorrect-submit" type="button" value="不正解" onclick="incorrectSubmit(chatSocket);afterIncorrectSubmit()" disabled />
+    {{ room_id|json_script:"room-id" }}
     <script>
-        const roomStatus = {
-            CREATING: 1,
-            WAITING: 2,
-            ASKING: 3,
-            ANSWERING: 4,
-        };
+        const roomId = JSON.parse(document.getElementById('room-id').textContent);
 
-        const answererStatus = {
-            WAITING: 1,
-            ANSWERING: 2,
-        };
-
-        const roomName = JSON.parse(document.getElementById('room-name').textContent);
-
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/chat/'
-            + roomName
-            + '/'
-        );
-
-        const isAnswering = function(status) {
-            if (status === answererStatus.ANSWERING) {
-                return "＊";
-            } else {
-                return "　";
-            }
-        };
-
-        setInterval(() => {
-            const roomId = document.querySelector('#room-id-input').value;
-            const roomPw = document.querySelector('#room-pw-input').value;
-            chatSocket.send(JSON.stringify({
-                'roomId' : roomId,
-                'roomPw' : roomPw,
-                'name': "",
-                'msg': "ping"
-            }));
-        }, 1000);
-
+        const chatSocket = newChatSocket(roomId);
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
 
-            answererList = "";
-            data.answerers.forEach(
-                (answerer) => answererList += 
-                    isAnswering(answerer["status"]) + answerer["name"] + "  " + String(answerer["score"]) + "点" + '\n'
-            );
-            document.querySelector('#answerer-list').value = answererList;
-            if (data.question_no !== 0) {
-                document.querySelector('#question-no-input').value = data.question_no;
-            }
+            updateAnswererList(data.answerers);
+            updateQuestionNo(data.question_no);
 
             if (data.status === roomStatus.ANSWERING) {
                 document.querySelector('#correct-submit').disabled = false;
@@ -79,48 +37,23 @@
                 document.querySelector('#question-submit').disabled = false;
             }
         };
+        chatSocket.onclose = closeChatSocket;
 
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
-
-        document.querySelector('#question-submit').onclick = function(e) {
-            const roomId = document.querySelector('#room-id-input').value;
-            const roomPw = document.querySelector('#room-pw-input').value;
-            chatSocket.send(JSON.stringify({
-                'roomId' : roomId,
-                'roomPw' : roomPw,
-                'name': "",
-                'msg': "question"
-            }));
+        const afterQuestionSubmit = function() {
             document.querySelector('#question-submit').disabled = true;
         };
 
-        document.querySelector('#correct-submit').onclick = function(e) {
-            const roomId = document.querySelector('#room-id-input').value;
-            const roomPw = document.querySelector('#room-pw-input').value;
-            chatSocket.send(JSON.stringify({
-                'roomId' : roomId,
-                'roomPw' : roomPw,
-                'name': "",
-                'msg': "correct"
-            }));
+        const afterCorrectSubmit = function() {
             document.querySelector('#correct-submit').disabled = true;
             document.querySelector('#incorrect-submit').disabled = true;
         };
 
-        document.querySelector('#incorrect-submit').onclick = function(e) {
-            const roomId = document.querySelector('#room-id-input').value;
-            const roomPw = document.querySelector('#room-pw-input').value;
-            chatSocket.send(JSON.stringify({
-                'roomId' : roomId,
-                'roomPw' : roomPw,
-                'name': "",
-                'msg': "incorrect"
-            }));
+        const afterIncorrectSubmit = function() {
             document.querySelector('#correct-submit').disabled = true;
             document.querySelector('#incorrect-submit').disabled = true;
         };
+
+        setInterval(() => {msgPing(chatSocket)}, 1000);
     </script>
 </body>
 </html>

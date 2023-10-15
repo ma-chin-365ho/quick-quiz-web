@@ -4,15 +4,17 @@
 <head>
     <meta charset="utf-8"/>
     <title>部屋作成</title>
+    {% load static %}
+    <script src="{% static 'chat/js/chat.js' %}"></script>
 </head>
 <body>
-    部屋作成<br>
+    部屋作成<br />
     <form id="room-creation-form" action="" method="POST">{% csrf_token %}
-        Room ID: <input id="room-id-input" name="room-id" type="text" size="100" value="{{ room_id }}" readonly="readonly"><br>
-        Room Password: <input id="room-pw-input" name="room-pw" type="text" size="100" value="{{ room_pw }}" readonly="readonly"><br>
-        Room Name : <input id="room-name-input" name="room-name" type="text" size="100"><br>
+        Room ID: <input id="room-id-input" name="room-id" type="text" size="100" value="{{ room_id }}" readonly="readonly" /><br />
+        Room Password: <input id="room-pw-input" name="room-pw" type="text" size="100" value="{{ room_pw }}" readonly="readonly" /><br />
+        Room Name : <input id="room-name-input" name="room-name" type="text" size="100" /><br />
     </form>
-    <input id="room-creation-submit" type="button" value="部屋作成">
+    <input id="room-creation-submit" type="button" value="部屋作成" onclick="roomCreationSubmit()" />
 
     <script>
         document.querySelector('#room-name-input').focus();
@@ -20,13 +22,6 @@
             if (e.keyCode === 13) {  // enter, return
                 document.querySelector('#room-creation-submit').click();
             }
-        };
-
-        document.querySelector('#room-creation-submit').onclick = function(e) {
-            var roomId = document.querySelector('#room-id-input').value;
-            var roomCreationForm = document.querySelector('#room-creation-form');
-            roomCreationForm.action = '/chat/room-questioner/' + roomId + '/';
-            roomCreationForm.submit();
         };
     </script>
 </body>
