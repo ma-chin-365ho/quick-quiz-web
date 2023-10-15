@@ -1,0 +1,23 @@
+<!-- chat/templates/chat/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Rooms</title>
+</head>
+<body>
+    早押しクイズ<br>
+    <input id="room-creation" type="button" value="部屋作成"><br>
+    <input id="room-entering" type="button" value="入室">
+
+    <script>
+        document.querySelector('#room-creation').onclick = function(e) {
+            window.location.pathname = '/chat/room-creation/';
+        };
+
+        document.querySelector('#room-entering').onclick = function(e) {
+            window.location.pathname = '/chat/room-entering/';
+        };
+</script>
+</body>
+</html>

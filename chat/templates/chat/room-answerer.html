@@ -1,0 +1,100 @@
+<!-- chat/templates/chat/room.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Quiz Room Answerer</title>
+</head>
+<body>
+    Room ID: <input id="room-id-input" name="room-id" type="text" size="100" value="{{ room_id }}" readonly="readonly"><br>
+    Room Password: <input id="room-pw-input" name="room-pw" type="text" size="100" value="{{ room_pw }}" readonly="readonly"><br>
+    Room Name : <input id="room-name-input" name="room-name" type="text" size="100" value="{{ room_name }}" readonly="readonly"><br>
+    Question No: <input id="question-no-input" name="question-no" type="text" size="100" value="" readonly="readonly"><br>
+    Answerer Name : <input id="answerer-name-input" name="answerer-name" type="text" size="100" value="{{ answerer_name }}" readonly="readonly"><br>
+
+    <textarea id="answerer-list" cols="100" rows="20"></textarea><br>
+    <input id="answer-submit" type="button" value="回答" disabled />
+    {{ room_id|json_script:"room-name" }}
+    <script>
+
+        const roomStatus = {
+            CREATING: 1,
+            WAITING: 2,
+            ASKING: 3,
+            ANSWERING: 4,
+        };
+
+        const answererStatus = {
+            WAITING: 1,
+            ANSWERING: 2,
+        };
+
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/chat/'
+            + roomName
+            + '/'
+        );
+
+        const isAnswering = function(status) {
+            if (status === answererStatus.ANSWERING) {
+                return "＊";
+            } else {
+                return "　";
+            }
+        };
+
+        setInterval(() => {
+            const roomId = document.querySelector('#room-id-input').value;
+            const roomPw = document.querySelector('#room-pw-input').value;
+            const answererNm = document.querySelector('#answerer-name-input').value;
+            chatSocket.send(JSON.stringify({
+                'roomId' : roomId,
+                'roomPw' : roomPw,
+                'name': answererNm,
+                'msg': "ping"
+            }));
+        }, 1000);
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            answererList = "";
+            data.answerers.forEach(
+                (answerer) => answererList += 
+                    isAnswering(answerer["status"]) + answerer["name"] + "  " + String(answerer["score"]) + "点" + '\n'
+            );
+            document.querySelector('#answerer-list').value = answererList;
+            if (data.question_no !== 0) {
+                document.querySelector('#question-no-input').value = data.question_no;
+            }
+
+            if (data.status === roomStatus.ASKING) {
+                document.querySelector('#answer-submit').disabled = false;
+            }
+            if (data.status === roomStatus.ANSWERING) {
+                document.querySelector('#answer-submit').disabled = true;
+            }
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#answer-submit').onclick = function(e) {
+            const roomId = document.querySelector('#room-id-input').value;
+            const roomPw = document.querySelector('#room-pw-input').value;
+            const answererNm = document.querySelector('#answerer-name-input').value;
+            chatSocket.send(JSON.stringify({
+                'roomId' : roomId,
+                'roomPw' : roomPw,
+                'name': answererNm,
+                'msg': "answer"
+            }));
+            document.querySelector('#answer-submit').disabled = true;
+        };
+    </script>
+</body>
+</html>

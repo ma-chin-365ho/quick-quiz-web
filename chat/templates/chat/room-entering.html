@@ -1,0 +1,43 @@
+<!-- chat/templates/chat/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>入室</title>
+</head>
+<body>
+    入室<br>
+    <form id="room-entering-form" action="" method="POST">{% csrf_token %}
+        Room ID: <input id="room-id-input" name="room-id" type="text" size="100" value=""><br>
+        Room Password: <input id="room-pw-input" name="room-pw" type="text" size="100" value=""><br>
+        Name : <input id="answerer-name-input" name="answerer-name" type="text" size="100"><br>
+    </form>
+    <input id="room-entering-submit" type="button" value="入室">
+
+    <script>
+        document.querySelector('#room-id-input').focus();
+        document.querySelector('#room-id-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#room-entering-submit').click();
+            }
+        };
+        document.querySelector('#room-pw-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#room-entering-submit').click();
+            }
+        };
+        document.querySelector('#answerer-name-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#room-entering-submit').click();
+            }
+        };
+
+        document.querySelector('#room-entering-submit').onclick = function(e) {
+            var roomId = document.querySelector('#room-id-input').value;
+            var roomEnteringForm = document.querySelector('#room-entering-form');
+            roomEnteringForm.action = '/chat/room-answerer/' + roomId + '/';
+            roomEnteringForm.submit();
+        };
+    </script>
+</body>
+</html>
