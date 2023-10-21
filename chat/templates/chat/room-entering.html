@@ -3,18 +3,50 @@
 <html>
 <head>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>入室</title>
     {% load static %}
+    <link href="{% static 'chat/css/style.css' %}" rel="stylesheet">
     <script src="{% static 'chat/js/chat.js' %}"></script>
+    <script src="https://kit.fontawesome.com/160a13150c.js" crossorigin="anonymous"></script>
 </head>
-<body>
-    入室<br />
-    <form id="room-entering-form" action="" method="POST">{% csrf_token %}
-        Room ID: <input id="room-id-input" name="room-id" type="text" size="100" value="" /><br />
-        Room Password: <input id="room-pw-input" name="room-pw" type="text" size="100" value="" /><br />
-        Name : <input id="answerer-name-input" name="answerer-name" type="text" size="100" /><br />
-    </form>
-    <input id="room-entering-submit" type="button" value="入室" onclick="roomEnteringSubmit()" />
+<body class="has-background-warning-light">
+    <div class="container">
+        <br />
+        <br />
+        <h2 class="title is-2 m-5 has-text-link">部屋に入る</h1>
+        <br />
+        <form id="room-entering-form" action="" method="POST">{% csrf_token %}
+            <div class="field m-5">
+                <label class="label has-text-link">部屋番号</label>
+                <div class="control has-icons-left">
+                    <input id="room-id-input" name="room-id" type="text" class="input is-link is-medium is-rounded" size="100" value="" />
+                    <span class="icon is-small is-left">
+                        <i class="fas fa-user"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="field m-5">
+                <label class="label has-text-link">パスワード</label>
+                <div class="control has-icons-left">
+                    <input id="room-pw-input" name="room-pw" type="text" class="input is-link is-medium is-rounded" size="100" value="" /><br />
+                    <span class="icon is-small is-left">
+                        <i class="fas fa-lock"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="field m-5">
+                <label class="label has-text-link">回答者名</label>
+                <div class="control has-icons-left">
+                    <input id="answerer-name-input" name="answerer-name" type="text" class="input is-link is-medium is-rounded" size="100" /><br />
+                    <span class="icon is-small is-left">
+                        <i class="fa-solid fa-person"></i>
+                    </span>
+                </div>
+            </div>
+        </form>
+        <input id="room-entering-submit" type="button" class="button is-link is-large is-rounded m-5"  value="入る" onclick="roomEnteringSubmit()" />
+    </div>
 
     <script>
         document.querySelector('#room-id-input').focus();

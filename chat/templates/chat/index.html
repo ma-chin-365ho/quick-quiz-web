@@ -3,13 +3,24 @@
 <html>
 <head>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Chat Rooms</title>
     {% load static %}
+    <link href="{% static 'chat/css/style.css' %}" rel="stylesheet">
     <script src="{% static 'chat/js/chat.js' %}"></script>
 </head>
-<body>
-    早押しクイズ<br />
-    <input id="room-creation" type="button" value="部屋作成" onclick="transPage(E_PAGE_ID.ROOM_CREATION)" /><br />
-    <input id="room-entering" type="button" value="入室" onclick="transPage(E_PAGE_ID.ROOM_ENTERING)" />
+<body class="has-background-warning-light">
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <h1 class="title is-1 has-text-centered has-text-link">早押しクイズ</h1>
+    <div class="align-center">
+        <input id="room-creation" type="button" class="button is-link is-large is-rounded m-5" value="部屋を作る" onclick="transPage(E_PAGE_ID.ROOM_CREATION)" /><br />
+    </div>
+    <div class="align-center">
+        <input id="room-entering" type="button" class="button is-link is-large is-rounded m-5" value="部屋に入る" onclick="transPage(E_PAGE_ID.ROOM_ENTERING)" />
+    </div>
 </body>
 </html>

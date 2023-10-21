@@ -3,19 +3,66 @@
 <html>
 <head>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Quiz Room Answerer</title>
     {% load static %}
+    <link href="{% static 'chat/css/style.css' %}" rel="stylesheet">
     <script src="{% static 'chat/js/chat.js' %}"></script>
+    <script src="https://kit.fontawesome.com/160a13150c.js" crossorigin="anonymous"></script>
 </head>
-<body>
-    Room ID: <input id="room-id-input" name="room-id" type="text" size="100" value="{{ room_id }}" readonly="readonly"><br>
-    Room Password: <input id="room-pw-input" name="room-pw" type="text" size="100" value="{{ room_pw }}" readonly="readonly"><br>
-    Room Name : <input id="room-name-input" name="room-name" type="text" size="100" value="{{ room_name }}" readonly="readonly"><br>
-    Question No: <input id="question-no-input" name="question-no" type="text" size="100" value="" readonly="readonly"><br>
-    Answerer Name : <input id="answerer-name-input" name="answerer-name" type="text" size="100" value="{{ answerer_name }}" readonly="readonly"><br>
+<body class="has-background-warning-light">
+    <div class="container">
+        <br />
+        <h2 class="title is-2 m-5 has-text-link">クイズの回答者</h1>
+        <div class="field">
+            <label class="label has-text-link">部屋番号</label>
+            <div class="control has-icons-left">
+                <input id="room-id-input" name="room-id" type="text" class="input is-link is-small is-rounded" size="100" value="{{ room_id }}" readonly="readonly" />
+                <span class="icon is-small is-left">
+                    <i class="fas fa-user"></i>
+                </span>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label has-text-link">パスワード</label>
+            <div class="control has-icons-left">
+                <input id="room-pw-input" name="room-pw" type="text" class="input is-link is-small is-rounded" size="100" value="{{ room_pw }}" readonly="readonly" />
+                <span class="icon is-small is-left">
+                    <i class="fas fa-lock"></i>
+                </span>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label has-text-link">部屋名</label>
+            <div class="control has-icons-left">
+                <input id="room-name-input" name="room-name" type="text" class="input is-link is-small is-rounded" size="100" value="{{ room_name }}" readonly="readonly" />
+                <span class="icon is-small is-left">
+                    <i class="fas fa-pen"></i>
+                </span>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label has-text-link">問題番号</label>
+            <div class="control has-icons-left">
+                <input id="question-no-input" name="question-no" type="text" class="input is-link is-small is-rounded" size="100" value="" readonly="readonly" />
+                <span class="icon is-small is-left">
+                    <i class="fa-solid fa-question"></i>
+                </span>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label has-text-link">回答者名</label>
+            <div class="control has-icons-left">
+                <input id="answerer-name-input" name="answerer-name" type="text" class="input is-link is-small is-rounded" size="100" value="{{ answerer_name }}" readonly="readonly" />
+                <span class="icon is-small is-left">
+                    <i class="fa-solid fa-person"></i>
+                </span>
+            </div>
+        </div>
 
-    <textarea id="answerer-list" cols="100" rows="20"></textarea><br>
-    <input id="answer-submit" type="button" value="回答" onclick="answerSubmit(chatSocket);afterAnswerSubmit()" disabled />
+        <textarea id="answerer-list" cols="100" rows="20"></textarea><br>
+        <input id="answer-submit" type="button" class="button is-link is-large is-rounded m-5" value="回答" onclick="answerSubmit(chatSocket);afterAnswerSubmit()" disabled />
+    </div>
     {{ room_id|json_script:"room-id" }}
     <script>
         const roomId = JSON.parse(document.getElementById('room-id').textContent);
