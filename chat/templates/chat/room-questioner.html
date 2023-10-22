@@ -10,7 +10,7 @@
     <script src="{% static 'chat/js/chat.js' %}"></script>
     <script src="https://kit.fontawesome.com/160a13150c.js" crossorigin="anonymous"></script>
 </head>
-<body class="has-background-warning-light">
+<body class="has-background-link-light">
     <div class="container">
         <br />
         <h2 class="title is-2 m-5 has-text-link">クイズの出題者</h1>
@@ -50,9 +50,18 @@
                 </span>
             </div>
         </div>
-
-        <textarea id="answerer-list" cols="100" rows="20" readonly>
-        </textarea><br />
+        <table class="table m-5">
+            <thead>
+              <tr>
+                <th><abbr title="No">No.</abbr></th>
+                <th><abbr title="Answerer Name">回答者</abbr></th>
+                <th><abbr title="Score">得点</abbr></th>
+                <th><abbr title="Status">状態</abbr></th>
+              </tr>
+            </thead>
+            <tbody id="answerer-tbody">
+            </tbody>
+        </table>
         <input id="question-submit" type="button" class="button is-link is-large is-rounded m-5" value="出題" onclick="questionSubmit(chatSocket);afterQuestionSubmit()" />
         <input id="correct-submit" type="button" class="button is-link is-large is-rounded m-5" value="正解" onclick="correctSubmit(chatSocket);afterCorrectSubmit()" disabled />
         <input id="incorrect-submit" type="button" class="button is-link is-large is-rounded m-5" value="不正解" onclick="incorrectSubmit(chatSocket);afterIncorrectSubmit()" disabled />
@@ -66,30 +75,33 @@
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
 
-            updateAnswererList(data.answerers);
+            updateAnswererTable(data.answerers);
             updateQuestionNo(data.question_no);
 
             if (data.status === roomStatus.ANSWERING) {
+                document.querySelector('html body').className = "has-background-primary-light";
                 document.querySelector('#correct-submit').disabled = false;
                 document.querySelector('#incorrect-submit').disabled = false;
-            } 
-
-            if ( data.status === roomStatus.WAITING ) {
+            } else if ( data.status === roomStatus.WAITING ) {
+                document.querySelector('html body').className = "has-background-link-light";
                 document.querySelector('#question-submit').disabled = false;
             }
         };
         chatSocket.onclose = closeChatSocket;
 
         const afterQuestionSubmit = function() {
+            document.querySelector('html body').className = "has-background-warning-light";
             document.querySelector('#question-submit').disabled = true;
         };
 
         const afterCorrectSubmit = function() {
+            document.querySelector('html body').className = "has-background-link-light";
             document.querySelector('#correct-submit').disabled = true;
             document.querySelector('#incorrect-submit').disabled = true;
         };
 
         const afterIncorrectSubmit = function() {
+            document.querySelector('html body').className = "has-background-link-light";
             document.querySelector('#correct-submit').disabled = true;
             document.querySelector('#incorrect-submit').disabled = true;
         };

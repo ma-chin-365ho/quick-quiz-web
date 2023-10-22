@@ -10,7 +10,7 @@
     <script src="{% static 'chat/js/chat.js' %}"></script>
     <script src="https://kit.fontawesome.com/160a13150c.js" crossorigin="anonymous"></script>
 </head>
-<body class="has-background-warning-light">
+<body class="has-background-link-light">
     <div class="container">
         <br />
         <h2 class="title is-2 m-5 has-text-link">クイズの回答者</h1>
@@ -60,7 +60,18 @@
             </div>
         </div>
 
-        <textarea id="answerer-list" cols="100" rows="20"></textarea><br>
+        <table class="table m-5">
+            <thead>
+              <tr>
+                <th><abbr title="No">No.</abbr></th>
+                <th><abbr title="Answerer Name">回答者</abbr></th>
+                <th><abbr title="Score">得点</abbr></th>
+                <th><abbr title="Status">状態</abbr></th>
+              </tr>
+            </thead>
+            <tbody id="answerer-tbody">
+            </tbody>
+        </table>
         <input id="answer-submit" type="button" class="button is-link is-large is-rounded m-5" value="回答" onclick="answerSubmit(chatSocket);afterAnswerSubmit()" disabled />
     </div>
     {{ room_id|json_script:"room-id" }}
@@ -71,19 +82,29 @@
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
 
-            updateAnswererList(data.answerers);
+            updateAnswererTable(data.answerers);
             updateQuestionNo(data.question_no);
 
             if (data.status === roomStatus.ASKING) {
+                document.querySelector('html body').className = "has-background-warning-light";
                 document.querySelector('#answer-submit').disabled = false;
-            }
-            if (data.status === roomStatus.ANSWERING) {
+            } else if (data.status === roomStatus.ANSWERING) {
+                myName = document.querySelector('#answerer-name-input').value;
+
+                if (amIAnswering(myName, data.answerers) === true) {
+                    document.querySelector('html body').className = "has-background-danger-light";
+                } else {
+                    document.querySelector('html body').className = "has-background-primary-light";
+                }
                 document.querySelector('#answer-submit').disabled = true;
+            } else {
+                document.querySelector('html body').className = "has-background-link-light";
             }
         };
         chatSocket.onclose = closeChatSocket;
 
         const afterAnswerSubmit = function() {
+            document.querySelector('html body').className = "has-background-danger-light";
             document.querySelector('#answer-submit').disabled = true;
         };
 

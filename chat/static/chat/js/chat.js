@@ -23,14 +23,6 @@ const transPage = function(pageId) {
     }
 };
 
-const isAnswering = function(status) {
-    if (status === answererStatus.ANSWERING) {
-        return "＊";
-    } else {
-        return "　";
-    }
-};
-
 const roomCreationSubmit = function() {
     var roomId = document.querySelector('#room-id-input').value;
     var roomCreationForm = document.querySelector('#room-creation-form');
@@ -91,13 +83,31 @@ const answerSubmit = function(chatSocket) {
 };
 
 
-const updateAnswererList = function(answerers) {
-    answererList = "";
+const updateAnswererTable = function(answerers) {
+    answererTableHTML = "";
+    no = 1;
     answerers.forEach(
-        (answerer) => answererList += 
-            isAnswering(answerer["status"]) + answerer["name"] + "  " + String(answerer["score"]) + "点" + '\n'
+        (answerer) => {
+
+            if (answerer["status"] === answererStatus.ANSWERING) {
+                tr_class = ' class="is-selected" ';
+                statusNm = "回答中";
+            } else {
+                tr_class = '';
+                statusNm = "　　　";
+            };
+        
+            answererTableHTML += 
+                "<tr" + tr_class + ">" +
+                    '<td style="text-align: right;">' + String(no) + "</td>" +
+                    '<td style="text-align: left;">' + answerer["name"] + "</td>" +
+                    '<td style="text-align: right;">' + String(answerer["score"]) + "</td>" +
+                    '<td style="text-align: center;">' + statusNm + "</td>" +
+                "</tr>"
+            no += 1;
+        }
     );
-    document.querySelector('#answerer-list').value = answererList;
+    document.querySelector('#answerer-tbody').innerHTML = answererTableHTML;
 };
 
 const updateQuestionNo = function(questionNo) {
@@ -105,6 +115,22 @@ const updateQuestionNo = function(questionNo) {
         document.querySelector('#question-no-input').value = questionNo;
     }
 };
+
+const amIAnswering = function(myName, answerers) {
+    is = false;
+
+    answerers.forEach(
+        (answerer) => {
+            if (answerer["name"] === myName) {
+                if (answerer["status"] === answererStatus.ANSWERING) {
+                    is = true;
+                };
+            };
+        }
+    );
+
+    return is;
+}
 
 const msgPing = function(chatSocket) {
     const roomId = document.querySelector('#room-id-input').value;
