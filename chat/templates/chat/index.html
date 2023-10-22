@@ -13,13 +13,20 @@
     <br />
     <br />
     <br />
-    <br />
-    <br />
     <h1 class="title is-1 has-text-centered has-text-link">早押しクイズ</h1>
     <div class="align-center">
-        <input id="room-creation" type="button" class="button is-link is-large is-rounded m-5" value="部屋を作る" onclick="transPage(E_PAGE_ID.ROOM_CREATION)" /><br />
+        <figure class="image is-128x128">
+            <img class="" src="{% static 'chat/image/quiz_hayaoshi_button_off.png' %}">
+        </figure>
+        <figure class="image is-128x128">
+            <img class="" src="{% static 'chat/image/quiz_hayaoshi_button_on.png' %}">
+        </figure>
+        <figure class="image is-128x128">
+            <img class="" src="{% static 'chat/image/quiz_hayaoshi_button_off.png' %}">
+        </figure>
     </div>
     <div class="align-center">
+        <input id="room-creation" type="button" class="button is-link is-large is-rounded m-5" value="部屋を作る" onclick="transPage(E_PAGE_ID.ROOM_CREATION)" /><br />
         <input id="room-entering" type="button" class="button is-link is-large is-rounded m-5" value="部屋に入る" onclick="transPage(E_PAGE_ID.ROOM_ENTERING)" />
     </div>
 </body>
