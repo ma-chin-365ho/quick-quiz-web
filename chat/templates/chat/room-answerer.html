@@ -82,6 +82,8 @@
     <script>
         const roomId = JSON.parse(document.getElementById('room-id').textContent);
 
+        var isFirstRecvInAnswering = true;
+
         const chatSocket = newChatSocket(roomId);
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
@@ -92,10 +94,15 @@
             if (data.status === roomStatus.ASKING) {
                 document.querySelector('html body').className = "has-background-warning-light";
                 document.querySelector('#answer-submit').disabled = false;
+                isFirstRecvInAnswering = true;
             } else if (data.status === roomStatus.ANSWERING) {
                 myName = document.querySelector('#answerer-name-input').value;
 
                 if (amIAnswering(myName, data.answerers) === true) {
+                    if (isFirstRecvInAnswering === true) {
+                        document.querySelector('#answer-audio').play();
+                    }
+                    isFirstRecvInAnswering = false;
                     document.querySelector('html body').className = "has-background-danger-light";
                 } else {
                     document.querySelector('html body').className = "has-background-primary-light";
@@ -108,8 +115,11 @@
         chatSocket.onclose = closeChatSocket;
 
         const afterAnswerSubmit = function() {
-            document.getElementById('answer-audio').play();
-            document.querySelector('html body').className = "has-background-danger-light";
+            // 下記の処理が無いと、コールバック関数からplay時に「Unhandled Promise Rejection: NotAllowedError」が発生する。
+            // ブラウザ側で音声や動画の JavaScript からの再生を禁止しているため、ユーザインタラクション契機で一回でも再生されてれば次からOK。
+            document.getElementById('answer-audio').load();
+            // 回答権得られた場合のみ表示なので、ボタン押下時はコメントアウト。
+            // document.querySelector('html body').className = "has-background-danger-light";
             document.querySelector('#answer-submit').disabled = true;
         };
 
