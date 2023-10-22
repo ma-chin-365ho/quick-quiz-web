@@ -66,6 +66,15 @@
         <input id="correct-submit" type="button" class="button is-link is-large is-rounded m-5" value="正解" onclick="correctSubmit(chatSocket);afterCorrectSubmit()" disabled />
         <input id="incorrect-submit" type="button" class="button is-link is-large is-rounded m-5" value="不正解" onclick="incorrectSubmit(chatSocket);afterIncorrectSubmit()" disabled />
     </div>
+    <audio id="question-audio">
+        <source src="{% static 'chat/audio/question.mp3' %}" type="audio/mp3">
+    </audio>
+    <audio id="correct-audio">
+        <source src="{% static 'chat/audio/correct.mp3' %}" type="audio/mp3">
+    </audio>
+    <audio id="incorrect-audio">
+        <source src="{% static 'chat/audio/incorrect.mp3' %}" type="audio/mp3">
+    </audio>
 
     {{ room_id|json_script:"room-id" }}
     <script>
@@ -90,17 +99,20 @@
         chatSocket.onclose = closeChatSocket;
 
         const afterQuestionSubmit = function() {
+            document.getElementById('question-audio').play();
             document.querySelector('html body').className = "has-background-warning-light";
             document.querySelector('#question-submit').disabled = true;
         };
 
         const afterCorrectSubmit = function() {
+            document.getElementById('correct-audio').play();
             document.querySelector('html body').className = "has-background-link-light";
             document.querySelector('#correct-submit').disabled = true;
             document.querySelector('#incorrect-submit').disabled = true;
         };
 
         const afterIncorrectSubmit = function() {
+            document.getElementById('incorrect-audio').play();
             document.querySelector('html body').className = "has-background-link-light";
             document.querySelector('#correct-submit').disabled = true;
             document.querySelector('#incorrect-submit').disabled = true;

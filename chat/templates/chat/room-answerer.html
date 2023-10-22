@@ -74,6 +74,10 @@
         </table>
         <input id="answer-submit" type="button" class="button is-link is-large is-rounded m-5" value="回答" onclick="answerSubmit(chatSocket);afterAnswerSubmit()" disabled />
     </div>
+    <audio id="answer-audio">
+        <source src="{% static 'chat/audio/answer.mp3' %}" type="audio/mp3">
+    </audio>
+
     {{ room_id|json_script:"room-id" }}
     <script>
         const roomId = JSON.parse(document.getElementById('room-id').textContent);
@@ -104,6 +108,7 @@
         chatSocket.onclose = closeChatSocket;
 
         const afterAnswerSubmit = function() {
+            document.getElementById('answer-audio').play();
             document.querySelector('html body').className = "has-background-danger-light";
             document.querySelector('#answer-submit').disabled = true;
         };
