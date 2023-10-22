@@ -77,7 +77,34 @@
     <audio id="answer-audio">
         <source src="{% static 'chat/audio/answer.mp3' %}" type="audio/mp3">
     </audio>
-
+    <div id="answer-modal" class="modal" onclick="closeModalAnswer()">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+          <p class="image is-4by3">
+            <img src="{% static 'chat/image/quiz_hayaoshi_button_on.png' %}" alt="">
+          </p>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+    <div id="correct-modal" class="modal"  onclick="closeModalCorrect()">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+          <p class="image is-4by3">
+            <img src="{% static 'chat/image/animal_quiz_neko_maru.png' %}" alt="">
+          </p>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+    <div id="incorrect-modal" class="modal" onclick="closeModalIncorrect()">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+          <p class="image is-4by3">
+            <img src="{% static 'chat/image/animal_quiz_neko_batsu.png' %}" alt="">
+          </p>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+    
     {{ room_id|json_script:"room-id" }}
     <script>
         const roomId = JSON.parse(document.getElementById('room-id').textContent);
@@ -95,12 +122,14 @@
                 document.querySelector('html body').className = "has-background-warning-light";
                 document.querySelector('#answer-submit').disabled = false;
                 isFirstRecvInAnswering = true;
+                closeModalAll();
             } else if (data.status === roomStatus.ANSWERING) {
                 myName = document.querySelector('#answerer-name-input').value;
 
                 if (amIAnswering(myName, data.answerers) === true) {
                     if (isFirstRecvInAnswering === true) {
                         document.querySelector('#answer-audio').play();
+                        document.querySelector('#answer-modal').classList.add("is-active");
                     }
                     isFirstRecvInAnswering = false;
                     document.querySelector('html body').className = "has-background-danger-light";
@@ -122,6 +151,22 @@
             // document.querySelector('html body').className = "has-background-danger-light";
             document.querySelector('#answer-submit').disabled = true;
         };
+
+        const closeModalAnswer = function(){
+            document.querySelector('#answer-modal').classList.remove("is-active");
+        };
+        const closeModalCorrect = function(){
+            document.querySelector('#correct-modal').classList.remove("is-active");
+        };
+        const closeModalIncorrect = function(){
+            document.querySelector('#incorrect-modal').classList.remove("is-active");
+        };
+
+        const closeModalAll = function(){
+            closeModalAnswer();
+            closeModalCorrect();
+            closeModalIncorrect();
+        }
 
         setInterval(() => {msgPing(chatSocket)}, 1000);
 </script>
