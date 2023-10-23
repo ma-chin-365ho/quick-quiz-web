@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .room import Room, RoomStatus
+from .room import RoomUtil, RoomStatus
 from .utils import AppUtilException
 import logging
 
@@ -8,9 +8,9 @@ def index(request):
     return render(request, "chat/index.html")
 
 def room_creation(request):
-    trg_room = Room()
+    (room_id, trg_room) = RoomUtil.issue()
     return render(request, "chat/room-creation.html",{
-        "room_id": trg_room.id,
+        "room_id": room_id,
         "room_pw": trg_room.password
     })
 
@@ -18,50 +18,45 @@ def room_entering(request):
     return render(request, "chat/room-entering.html")
 
 def room_questioner(request, room_id):
+    p_room_id = None
+    room_pw = None
+    room_name = None
     if request.method == "POST":
         p_room_id = request.POST.get('room-id')
         room_pw = request.POST.get('room-pw')
         room_name = request.POST.get('room-name')
 
-        if (
-            p_room_id is not None and
-            room_pw is not None and
-            room_name is not None
-        ):
-            trg_room = Room.get_instance(p_room_id)
-            if trg_room.is_password_ok(room_pw):
-                if trg_room.status == RoomStatus.CREATING.value:
-                    trg_room.name = room_name
-                    trg_room.status = RoomStatus.WAITING.value
-            else:
-                raise AppUtilException("パスワード不一致")
-                pass
+        RoomUtil.check_password(p_room_id, room_pw)
+        RoomUtil.config(p_room_id, room_name)
+    else:
+        raise AppUtilException("HTTPメソッド不一致")
+        
     return render(request, "chat/room-questioner.html", {
-        "room_id": trg_room.id,
-        "room_pw": trg_room.password,
-        "room_name": trg_room.name
+        "room_id": p_room_id,
+        "room_pw": room_pw,
+        "room_name": room_name
     })
 
 def room_answerer(request, room_id):
+    p_room_id = None
+    room_pw = None
+    room_name = None
+    answerer_name = None
     if request.method == "POST":
         p_room_id = request.POST.get('room-id')
         room_pw = request.POST.get('room-pw')
         answerer_name = request.POST.get('answerer-name')
 
-        if (
-            p_room_id is not None and
-            room_pw is not None and
-            answerer_name is not None
-        ):
-            trg_room = Room.get_instance(p_room_id)
-            if trg_room.is_password_ok(room_pw):
-                trg_room.add_answerer(answerer_name)
-            else:
-                raise AppUtilException("パスワード不一致")
-                pass
+        RoomUtil.check_password(p_room_id, room_pw)
+        RoomUtil.add_answerer(p_room_id, answerer_name)
+        trg_room = RoomUtil.get(p_room_id)
+        room_name = trg_room.name
+    else:
+        raise AppUtilException("HTTPメソッド不一致")
+
     return render(request, "chat/room-answerer.html", {
-        "room_id": trg_room.id,
-        "room_pw": trg_room.password,
-        "room_name": trg_room.name,
+        "room_id": p_room_id,
+        "room_pw": room_pw,
+        "room_name": room_name,
         "answerer_name": answerer_name
     })

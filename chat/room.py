@@ -4,100 +4,148 @@ import copy
 
 from .utils import gen_password, AppUtilException
 from .answerer import Answerer, AnswererStatus
+from .kvs import KVS, KeyGroupName
+from mysite.config import MyConfig
 
-rooms = {}
 
 class RoomStatus(Enum):
     CREATING = 1
     WAITING = 2
     ASKING = 3
     ANSWERING = 4
-
 class Room:
-    __MIN_ROOM_ID = 1
-    __MAX_ROOM_ID = 999
-    __SIZE_PASSWORD = 6
-
     def __init__(self):
-        self.id = self.__issue_room_id()
         self.name = None
-        self.password = gen_password(self.__SIZE_PASSWORD)
+        self.password = gen_password(MyConfig.App.SIZE_PASSWORD)
         self.status = RoomStatus.CREATING.value
-        self.answerers = []
         self.question_no = 0
 
+# FIXME:全体的に排他制御必要。get_objにfor_update = Noneとか作って、ロックかけるか。ß
+class RoomUtil:
     @staticmethod
-    def get_instance(room_id):
-        room = rooms.get(room_id)
+    def get(room_id):
+        room = KVS.get_obj(KeyGroupName.ROOM + room_id)
         if room is None:
-            raise AppUtilException("ルームが存在しない")
+            raise AppUtilException("部屋が存在しない")
         return room
-    
-    def is_password_ok(self, password):
-        if self.password == password:
-            return True
+
+    @staticmethod
+    def check_password(room_id, password):
+        room = KVS.get_obj(KeyGroupName.ROOM + room_id)
+        if room.password == password:
+            pass
         else:
-            return False
+            raise AppUtilException("パスワード不一致")
         
-    def add_answerer(self, name):
-        for answerer in self.answerers:
+    @staticmethod
+    def add_answerer(room_id, name):
+        if (name is None) or (name == ""):
+            raise AppUtilException("解答者名が不正")
+
+        answerers = KVS.get_hash_obj(KeyGroupName.ANSERERS + room_id)
+        for answerer in answerers.values():
             if answerer.name == name:
                 raise AppUtilException("解答者名が重複")
-        
+
+        digit_answerer_id = len(str(MyConfig.App.MAX_ANSWERER_ID))
+        hkeys = []
+        for answerer_id in range(MyConfig.App.MIN_ANSWERER_ID, MyConfig.App.MAX_ANSWERER_ID):
+            s_answerer_id = str(answerer_id).zfill(digit_answerer_id)
+            hkeys.append(s_answerer_id)
+
         answerer = Answerer(name)
-        self.answerers.append(answerer)
-    
-    def to_dict(self):
-        self_dict = copy.deepcopy(vars(self))
+        hkey = KVS.set_hash_sw_obj(KeyGroupName.ANSERERS + room_id, hkeys, answerer)
+        if hkey is not None:
+            return hkey
+        else:
+            raise AppUtilException("参加者ID枯渇")
+            
+    @staticmethod
+    def get_dict(room_id):
+        room = KVS.get_obj(KeyGroupName.ROOM + room_id)
+        room_dict = copy.deepcopy(vars(room))
         answerer_dicts = []
-        for answerer in self.answerers:
+        answerers = KVS.get_hash_obj(KeyGroupName.ANSERERS + room_id)
+        for answerer in answerers.values():
             answerer_dicts.append(copy.deepcopy(vars(answerer)))
-        self_dict["answerers"] = answerer_dicts
-        return self_dict
+        room_dict["answerers"] = answerer_dicts
+        return room_dict
     
-    def question(self):
-        self.status = RoomStatus.ASKING.value
-        self.question_no += 1
+    @staticmethod
+    def question(room_id):
+        room = KVS.get_obj(KeyGroupName.ROOM + room_id)
+        room.status = RoomStatus.ASKING.value
+        room.question_no += 1
+        KVS.set_obj(KeyGroupName.ROOM + room_id, room)
 
-    def answer(self, answerer_name):
-        self.status = RoomStatus.ANSWERING.value
 
-        for answer in self.answerers:
+    @staticmethod
+    def answer(room_id, answerer_name):
+        room = KVS.get_obj(KeyGroupName.ROOM + room_id)
+        room.status = RoomStatus.ANSWERING.value
+        KVS.set_obj(KeyGroupName.ROOM + room_id, room)
+
+        answerers = KVS.get_hash_obj(KeyGroupName.ANSERERS + room_id)
+        for answer in answerers.values():
             if answer.status == AnswererStatus.ANSWERING.value:
                 return
-        
-        for answer in self.answerers:
+        for answer_id, answer in answerers.items():
             if answer.name == answerer_name:
                 answer.status = AnswererStatus.ANSWERING.value
+                KVS.set_hash_obj(KeyGroupName.ANSERERS + room_id, answer_id, answer)
                 return
 
-    def correct(self):
-        self.status = RoomStatus.WAITING.value
+    @staticmethod
+    def correct(room_id):
+        room = KVS.get_obj(KeyGroupName.ROOM + room_id)
+        room.status = RoomStatus.WAITING.value
+        KVS.set_obj(KeyGroupName.ROOM + room_id, room)
 
-        for answer in self.answerers:
+        answerers = KVS.get_hash_obj(KeyGroupName.ANSERERS + room_id)
+        for answer_id, answer in answerers.items():
             if answer.status == AnswererStatus.ANSWERING.value:
                 answer.status = AnswererStatus.WAITING.value
                 answer.score += 1
+                KVS.set_hash_obj(KeyGroupName.ANSERERS + room_id, answer_id, answer)
                 return
 
-    def incorrect(self):
-        self.status = RoomStatus.WAITING.value
+    @staticmethod
+    def incorrect(room_id):
+        room = KVS.get_obj(KeyGroupName.ROOM + room_id)
+        room.status = RoomStatus.WAITING.value
+        KVS.set_obj(KeyGroupName.ROOM + room_id, room)
 
-        for answer in self.answerers:
+        answerers = KVS.get_hash_obj(KeyGroupName.ANSERERS + room_id)
+        for answer_id, answer in answerers.items():
             if answer.status == AnswererStatus.ANSWERING.value:
                 answer.status = AnswererStatus.WAITING.value
+                KVS.set_hash_obj(KeyGroupName.ANSERERS + room_id, answer_id, answer)
                 return
 
-    def __issue_room_id(self):
-        global rooms
-
-        digit_room_id = len(str(self.__MAX_ROOM_ID))
-        for room_id in range(self.__MIN_ROOM_ID, self.__MAX_ROOM_ID):
+    @staticmethod
+    def issue():
+        keys = []
+        digit_room_id = len(str(MyConfig.App.MAX_ROOM_ID))
+        for room_id in range(MyConfig.App.MIN_ROOM_ID, MyConfig.App.MAX_ROOM_ID):
             s_room_id = str(room_id).zfill(digit_room_id)
-            if s_room_id not in rooms.keys():
-                rooms[s_room_id] = self
-                return s_room_id
-        raise AppUtilException("ルームID枯渇")
-    
+            keys.append(KeyGroupName.ROOM + s_room_id)
+        
+        room = Room()
+        key = KVS.set_sw_obj(keys, room)
+        if key is not None:
+            return (key.replace(KeyGroupName.ROOM, ""), room)
+        else:
+            raise AppUtilException("ルームID枯渇")
+        
+    @staticmethod
+    def config(room_id, room_name):
+        room = KVS.get_obj(KeyGroupName.ROOM + room_id)
+        if room.status == RoomStatus.CREATING.value:
+            room.name = room_name
+            room.status = RoomStatus.WAITING.value
+            KVS.set_obj(KeyGroupName.ROOM + room_id, room)
+        else:
+            raise AppUtilException("部屋ステータス異変")
 
-    
+
+

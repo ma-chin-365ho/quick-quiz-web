@@ -5,7 +5,7 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from .utils import AppUtilException
-from .room import Room, RoomStatus
+from .room import RoomUtil
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -31,19 +31,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         name = text_data_json["name"]
         msg = text_data_json["msg"]
 
-        trg_room = Room.get_instance(room_id)
-
-        if not trg_room.is_password_ok(room_pw):
-            raise AppUtilException("パスワード不一致")
+        RoomUtil.check_password(room_id, room_pw)
 
         if msg == "question":
-            trg_room.question()
+            RoomUtil.question(room_id)
         elif msg == "answer":
-            trg_room.answer(name)
+            RoomUtil.answer(room_id, name)
         elif msg == "correct":
-            trg_room.correct()
+            RoomUtil.correct(room_id)
         elif msg == "incorrect":
-            trg_room.incorrect()
+            RoomUtil.incorrect(room_id)
         elif msg == "ping":
             pass
 
@@ -55,8 +52,5 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Receive message from room group
     async def chat_message(self, event):
         room_id = event["room_id"]
-        trg_room = Room.get_instance(room_id)
-
         # Send message to WebSocket
-        logging.error(trg_room.to_dict())
-        await self.send(text_data=json.dumps(trg_room.to_dict()))
+        await self.send(text_data=json.dumps(RoomUtil.get_dict(room_id)))
