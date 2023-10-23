@@ -22,6 +22,7 @@ class KVS:
             obj = pickle.loads(bin)
         return obj
     
+    @staticmethod
     def get_hash_obj(key):
         """
             Python ObjectのHashをget
